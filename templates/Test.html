@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Hello OpenCV.js</title>
+</head>
+<body>
+    <h2>Hello OpenCV.js</h2>
+    <p id="status">OpenCV.js is loading...</p>
+    <div>
+        <div class="inputoutput">
+            <img id="imageSrc" alt="No Image" />
+            <div class="caption">imageSrc <input type="file" id="fileInput" name="file" /></div>
+        </div>
+        <div class="inputoutput">
+            <canvas id="canvasOutput" ></canvas>
+            <div class="caption">canvasOutput</div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        let imgElement = document.getElementById('imageSrc');
+        let inputElement = document.getElementById('fileInput');
+        inputElement.addEventListener('change', (e) => {
+            imgElement.src = URL.createObjectURL(e.target.files[0]);
+        }, false);
+
+        imgElement.onload = function() {
+            let mat = cv.imread(imgElement);
+            mat = normalize_image(mat);
+            cv.imshow('canvasOutput', mat);
+            mat.delete();
+        };
+
+        function normalize_image(img){
+            function shift_image(img,x,y){
+            /*
+                Pad into image to center of character is center of image
+                :param img: cv2 binary image
+                :param x: x_center_of_image - x_center_of_character
+                :param y: y_center_of_image - y_center_of_character
+                :return: Padded image that center of character lies on center of image
+                */
+                let x_abs = parseInt(Math.round(Math.abs(x)));
+                let y_abs = parseInt(Math.round(Math.abs(y)));
+
+            let value = new cv.Scalar(255, 255, 255, 255); // color for the image
+            let dst_image = new cv.Mat();
+            if (x < 0 && y < 0){
+                cv.copyMakeBorder(img,dst_image, y_abs, 0, x_abs, 0, cv.BORDER_CONSTANT, value);
+            }
+            else if (x < 0 && y > 0){
+                cv.copyMakeBorder(img,dst_image,  y_abs, 0, 0, x_abs, cv.BORDER_CONSTANT,value);
+            }
+            else if (x > 0 && y < 0){
+                cv.copyMakeBorder(img,dst_image, 0, y_abs, x_abs, 0, cv.BORDER_CONSTANT, value);
+            }
+            else{
+                cv.copyMakeBorder(img,dst_image, 0, y_abs, 0, x_abs, cv.BORDER_CONSTANT, value);
+                
+            }
+            return dst_image;
+        }
+
+        function padding_and_hold_ratio(cv_img){
+            let h=cv_img.height,w=cv_img.width;
+            let dst_image = new cv.Mat();
+            let value = new cv.Scalar(255, 255, 255, 255); // color for the image
+            if (h < w){
+             diff = w - h;
+             top_pad = parseInt(diff / 2);
+             bot_pad = diff - top_pad;
+             cv.copyMakeBorder(cv_img, dst_image, top_pad, bot_pad, 0, 0, cv.BORDER_CONSTANT, value);
+         }
+         else {
+            diff = h - w;
+            left_pad = parseInt(diff / 2);
+            right_pad = diff - left_pad;
+            cv.copyMakeBorder(cv_img, dst_image, 0, 0, left_pad, right_pad, cv.BORDER_CONSTANT, value);
+
+        }
+
+        return dst_image;
+    }
+
+    function list_contours(contours){
+        let list = [];
+        let max_len = 0;
+        for (let i = 0 ; i < contours.size(); i++){
+            cnt = contours.get(i);
+            for (let j = 0 ; j < cnt.data32S.length; j++){
+                list.push(cnt.data32S[j]);
+            }
+
+        }
+        crop_char(img, list);
+        return list;
+    } 
+
+    function filter_much_small_contour(bin_img, contours, hierarchy, min_area){
+     let back_color = new cv.Scalar(0,0,0,0);
+     let char_color = new cv.Scalar(255,255,255,0);
+     let imgBg = new cv.Mat(bin_img.cols, bin_img.rows, cv.CV_8UC1, char_color);
+     let mask = new cv.Mat(bin_img.cols, bin_img.rows, cv.CV_8UC1, back_color);
+     let inv_mask = new cv.Mat(bin_img.cols, bin_img.rows, cv.CV_8UC1, back_color);
+     let total_mask = new cv.Mat(bin_img.cols, bin_img.rows, cv.CV_8UC1, back_color);
+     let new_contour = [];
+     const points = {};
+     for (let i = 0; i < contours.size(); ++i) {
+          const cnt = contours.get(i); // contour index
+          if (parseInt(cv.contourArea(cnt, false))  == 0){
+              for (let j = 0; j < cnt.data32S.length; j += 2){
+                bin_img.data[cnt.data32S[j]*bin_img.rows + cnt.data32S[j+1]*bin_img.cols] = 0;
+            }
+        }
+        else if (0 < cv.contourArea(cnt, false) < min_area){
+            if (hierarchy.data32S[i * 4 + 3] != -1){
+                cv.drawContours(inv_mask, contours, i, char_color, 1, cv.LINE_8, hierarchy, 1);
+            }
+            else{
+              cv.drawContours(mask, contours, i, char_color, 1, cv.LINE_8, hierarchy, 1);  
+          }
+      }
+      else{
+        let new_contour = new MatVector();
+        new_contour.push_back(contours.get(i));
+    }
+          // Not done - need to review again document.
+          cv.bitwise_and(bin_img, bin_img, mask);
+          
+      }
+      return [mask, list_contours(contours)];
+      
+
+  }
+  function crop_char(threshold, contours){
+    let i = 0;
+    let ymax = -1;
+    let xmax = -1;
+    let xmin = 9999;
+    let ymin = 9999;
+    for (let i = 0; i < contours.length; i++){
+        if (i % 2 == 0){
+            if (parseInt(contours[i]) < parseInt(xmin)){
+                xmin = parseInt(contours[i]);
+            }
+            else if (parseInt(contours[i]) > parseInt(xmax)){
+                xmax = parseInt(contours[i]);
+            }
+        }
+        else{
+            if (parseInt(contours[i]) < parseInt(ymin)){
+                ymin = parseInt(contours[i]);
+            }
+            else if (parseInt(contours[i]) > parseInt(ymax)){
+                ymax = parseInt(contours[i]);
+            }
+        }
+    }
+    let dst = new cv.Mat();
+    let rect = new cv.Rect(xmin, ymin, xmax-xmin, ymax-ymin);
+    dst = threshold.roi(rect);
+    return dst;
+
+}
+function find_center(list2, mask){
+    let kpCnt = parseInt(list2.length / 2);
+    let x = 0;
+    let y = 0;
+
+    for (let i = 0 ; i < list2.length ; i+=2){
+        x += list2[i];
+        y += list2[i+1];
+    }
+    return [x / kpCnt, y /kpCnt];
+}
+
+
+
+
+function normalize_mask(thresh){
+        // initialize 
+        let contours = new cv.MatVector();
+        let hierarchy = new cv.Mat();
+        cv.findContours(thresh, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+
+        // filter small 
+        let values = filter_much_small_contour(thresh, contours, hierarchy, 70);
+        let fill_small_image = values[0];
+        let new_contour = values[1];
+
+        //find center
+        crop_image = crop_char(fill_small_image, list_contours(contours));
+        values = find_center(list_contours)
+        x_center = values[0];
+        y_center = values[1];
+
+        // shift image 
+        shifted_img = shift_image(crop_image, crop_image.cols / 2 - x_center, crop_image.rows / 2 - y_center);
+
+        return padding_and_hold_ratio(shifted_img);
+    }
+    function preprocess_img(cv_img, threshold){
+       cv.cvtColor(cv_img, cv_img, cv.COLOR_RGBA2GRAY, 0);
+       cv.threshold(cv_img, cv_img, 110, 255, cv.THRESH_BINARY_INV);
+       preprocessed_img = normalize_mask(cv_img);
+       return preprocessed_img;
+   }
+   return preprocess_img(img, 110);
+}
+
+function convert_color_img(img, color){
+    cv.cvtColor(img, img, cv.COLOR_GRAY2RGB, 0);
+    let rgbaPlanes = new cv.MatVector();
+    let mergedPlanes = new cv.MatVector();
+    cv.split(img, rgbaPlanes);
+
+     // Get G channel
+     let G = rgbaPlanes.get(1);
+    // Get B channel
+    let B = rgbaPlanes.get(2);
+    // Merge G & B channels
+
+    for (let i = 0 ; i < img.rows; i++){
+        for(let j = 0; j < img.cols; j++){
+            if (color == 'r'){
+             img.ucharPtr(i, j)[0] = 255; 
+         }
+         else if (color == 'g'){
+            img.ucharPtr(i, j)[1] = 255;
+        }
+        else if (color == 'b'){
+            img.ucharPtr(i, j)[2] = 255;
+        }
+        else{
+            img.ucharPtr(i, j)[0] = 255;
+            img.ucharPtr(i, j)[2] = 255;
+        }
+
+    }
+    
+}
+        return img;
+}
+
+
+
+
+function onOpenCvReady() {
+    document.getElementById('status').innerHTML = 'OpenCV.js is ready.';
+}
+</script>
+<script async src="opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+</body>
+</html>
+Note
