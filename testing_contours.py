@@ -5,6 +5,7 @@ import copy
 from collections import defaultdict
 
 
+
 def shift_image(img, x, y):
     """
     Pad into image to center of character is center of image

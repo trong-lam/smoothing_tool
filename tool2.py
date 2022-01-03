@@ -71,30 +71,47 @@ def is_inside_contour_and_get_local_line(all_points_x, all_points_y, contours):
     index = 0
     previous = 0
     mul_range = []
-    print(len(list_contours(contours)))
+    new_line = False
+    # len(list_contours(contours)))
+    activate = True
+    this_local_line_may_consist_two_range = 0
+    #do not accept multiple
     for i, cnt in enumerate(list_contours(contours)):
         px, py = cnt
-        if is_inside_polygon(all_points_x, all_points_y, px, py) == 1:
-            if index == previous:
+        if is_inside_polygon(all_points_x, all_points_y, px, py) == 1 :
+            if new_line == False:
+                new_line = True
                 start_cnt = i
-                index += 1
-            if index > previous:
                 end_cnt = i
-        else:
-            if index > previous:
-                mul_range.append([start_cnt, end_cnt])
-                #print('mul_range',mul_range)
-                index = previous
-            start_cnt = None
-            end_cnt = None
+            else:
+                end_cnt = i
 
-    if start_cnt or end_cnt is not None:
+            if i == 0 or i == len(list_contours(contours)) - 1:
+                this_local_line_may_consist_two_range += 1
+        else:
+            if new_line == True:
+                new_line = False
+                mul_range.append([start_cnt, end_cnt])
+                start_cnt = None
+                end_cnt = None
+
+    if start_cnt is not None and end_cnt is not None:
         mul_range.append([start_cnt, end_cnt])
+
 
     if len(mul_range) == 0:
         return False, None
     else:
-        return True, mul_range
+        #filter the range
+        temp_mul_range = []
+        if this_local_line_may_consist_two_range > 1:
+            for i,r in enumerate(mul_range):
+                if i == 0 or i == len(mul_range) -1 :
+                    temp_mul_range.append(r)
+            return True, temp_mul_range[::-1]
+        else:
+            temp_mul_range.append(mul_range[-1])
+            return True, temp_mul_range
 
 
 def extract_coordinate_from_contours(contours):
@@ -138,8 +155,8 @@ def show_line_with_diff_color(img, contours, color='r'):
     return img
 
 
-def smoothing_line(result_img, global_line_contours, local_line_contours, ranging, visualize, smoothenByX, smoothenByY, local_rate,
-                   global_rate, long_rate, img_shape, highlight):
+def smoothing_line(result_img, global_line_contours, mul_range, visualize, smoothenByX, smoothenByY, local_rate,
+                   img_shape, highlight):
     """ This function emphasizes on smoothing specific region of the random line
 
           :param
@@ -156,67 +173,41 @@ def smoothing_line(result_img, global_line_contours, local_line_contours, rangin
             new_global_line: numpy contour has been smoothened
         """
 
-    local_line_x, local_line_y = extract_coordinate_from_contours(local_line_contours)
-    global_line_x, global_line_y = extract_coordinate_from_contours(global_line_contours)
+    local_line_x = []
+    local_line_y = []
+    for r in mul_range:
+        start, end = r
+        x, y = extract_coordinate_from_contours(global_line_contours[start:end])
+        local_line_x.extend(x)
+        local_line_y.extend(y)
+
 
     if highlight:
         cv2.drawContours(result_img, [global_line_contours], -1, (255, 0, 255), 1)
-
-        result_img = show_line_with_diff_color(result_img, local_line_contours, 'r')
-
+        for r in mul_range:
+            start, end = r
+            local_line_contour = global_line_contours[start:end]
+            result_img = show_line_with_diff_color(result_img, local_line_contour, 'r')
         return result_img, global_line_contours
 
     else:
         # Smoothing only for local line
-
-        for i in range(1, local_rate):
-
-            r_x = i if smoothenByX else 1
-            r_y = i if smoothenByY else 1
-
-            new_local_line_y = gaussian_filter1d(local_line_y, r_y)
-            new_local_line_x = gaussian_filter1d(local_line_x, r_x)
-
-            new_local_line = [[list(a)] for a in zip(new_local_line_y, new_local_line_x)]
-            new_local_line = np.asarray(new_local_line)
-            global_line_contours[ranging[0]:ranging[1]] = new_local_line
-
-            # visuale lize the process local smoothing
-            if visualize:
-                replicate_global = global_line_contours.copy()
-
-                blank = np.zeros(img_shape)
-                blank = convert_color_img(blank, 'x')
-                cv2.drawContours(blank, [global_line_contours], -1, (255, 0, 255), 1)
-                blank = show_line_with_diff_color(blank, new_local_line, 'r')
-                plt.imshow(blank)
-                plt.show()
-
-        # global gaussian
         global_line_x, global_line_y = extract_coordinate_from_contours(global_line_contours)
+        new_local_line_y = gaussian_filter1d(local_line_y, local_rate)
+        new_local_line_x = gaussian_filter1d(local_line_x, local_rate)
 
-        # define
-        # font, back meaning starting node and ending node respectively
-        if global_rate != 0:
-            font_start = ranging[0] - int(ranging[0] * long_rate)
-            font_end = ranging[0] + int(ranging[0] * long_rate)
-            back_start = ranging[1] - int(ranging[1] * long_rate)
-            back_end = ranging[1] + int(ranging[1] * long_rate)
-
-            # global smoothening
-
-            global_line_x[font_start:font_end] = gaussian_filter1d(global_line_x[font_start:font_end], global_rate)
-            global_line_y[font_start:font_end] = gaussian_filter1d(global_line_y[font_start:font_end], global_rate)
-            global_line_x[back_start:back_end] = gaussian_filter1d(global_line_x[back_start:back_end], global_rate)
-            global_line_y[back_start:back_end] = gaussian_filter1d(global_line_y[back_start:back_end], global_rate)
-            global_line_y[font_start:back_end] = gaussian_filter1d(global_line_y[font_start:back_end], global_rate)
-
-        new_global_line = [[list(a)] for a in zip(global_line_y, global_line_x)]
-        new_global_line = np.asarray(new_global_line)
-
-        result_img = cv2.drawContours(result_img, [new_global_line], -1, (255, 0, 255),  1)
-
-        return result_img, new_global_line
+        new_local_line = [[list(a)] for a in zip(new_local_line_y, new_local_line_x)]
+        new_local_line = np.asarray(new_local_line)
+        start_local_line = 0
+        end_local_line = 0
+        for r in mul_range:
+            start_global_line, end_global_line = r
+            start_local_line = end_local_line
+            distance = abs(start_global_line - end_global_line)
+            end_local_line = start_local_line + distance
+            global_line_contours[start_global_line:end_global_line] = new_local_line[start_local_line:end_local_line]
+        result_img = cv2.drawContours(result_img, [global_line_contours], -1, (255, 0, 255), 1)
+        return result_img, global_line_contours
 
 def convert_color_img(img, color):
     """
@@ -243,37 +234,3 @@ def convert_color_img(img, color):
 
 
 
-
-
-
-if  __name__ == "__main__":
-    x = [110, 106, 186, 211]
-    y = [379, 411, 427, 414]
-    xy = []
-    for  i in zip(x,y):
-        xy.append(list(i))
-    print(xy)
-    px = 414
-    py = 135
-    normalized_pred_img = cv2.imread(r'C:\Users\Admin\PycharmProjects\mocban_tool\static\uploads\36.png', 0)
-    global_contours, hierarchy = cv2.findContours(normalized_pred_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    global_contours = global_contours[0]
-    #print(list_contours(global_contours))
-    start = 0
-    end = 0
-    count = 0
-    print("is_inside_polygon:",is_inside_polygon(x,y, 421,172))
-    for i,cnt in enumerate(list_contours(global_contours)):
-            px, py = cnt
-            if is_inside_polygon(x, y, px, py) == 1:
-                if count == 0:
-                    start = i
-                else:
-                    end = i
-                count +=1
-
-    ranging = [start, end]
-    line = global_contours[ranging[0]:ranging[1]]
-    smoothed_img, g_contours = smoothing_line(global_contours, line, ranging, False, False, True, 2, 10, 0.01, normalized_pred_img.shape)
-
-    print(is_inside_polygon(x, y, px, py))

@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import copy
 from testing_contours import centerlize_contour_image, preprocess_img
-from tool2 import is_inside_polygon,smoothing_line, is_inside_contour_and_get_local_line,convert_color_img,show_line_with_diff_color
+from tool_copy import is_inside_polygon,smoothing_line, is_inside_contour_and_get_local_line,convert_color_img,show_line_with_diff_color
 from normalize import Normalize
 from collections import defaultdict
 app = Flask(__name__)
@@ -45,23 +45,13 @@ def recieve_img(filename):
         file = request.files['file']
         if file:
             filename = secure_filename(file.filename)
-
             nparr = np.fromstring(file.read(), np.uint8)
-            #print("nparr: ", nparr)
             img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)  # cv2.IMREAD_COLOR in OpenCV 3.1
-            #print("img_np: ", img_np)
             path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             img_np = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
-            print(" io.BytesIO(img_np): ",  io.BytesIO(img_np))
-            # return send_file(
-            #     io.BytesIO(img_np),
-            #     attachment_filename=filename,
-            #     mimetype='image/png'
-            # )
             normalized_pred_img = normalize_obj.preprocess_img(img_np)
             # = convert_color_img(normalized_pred_img, 'x')
             cv2.imwrite(path, normalized_pred_img)
-
             return send_from_directory(app.config['UPLOAD_FOLDER'],filename, as_attachment=False )
 
 
@@ -75,37 +65,29 @@ def recieve_img(filename):
 def upload_image(id_img,region_id, filename, highlight):
     effect = "gaussian" # may be change later
     path = os.path.join(os.getcwd(), 'dataOfEffect.json')
-    print("file_name: ", filename,"id_img: ", id_img,"region_id: ", region_id)
-    content = {
-        id_img: {
-            effect: [
-                {
-                    "global_rate": 0,
-                    "local_rate": 0,
-                    "long_rate": 0,
-                    "only_x": "True",
-                    "only_y": "True",
-                }
-            ]
-        }
-    }
+
     if request.method == 'GET':
         with open(path, 'r+') as jsonFile:
             #check if file is empty
             if os.path.getsize(path) == 0:
-
+                content = {
+                   id_img:{
+                      effect:[
+                         {
+                            "global_rate":0,
+                            "local_rate":0,
+                            "long_rate":0,
+                             "only_x":"True",
+                             "only_y":"True",
+                         }
+                      ]
+                   }
+                }
                 jsonFile.write(str(json.dumps(content,indent=2)))
                 return content[id_img][effect][0]
             else:
                 all_data = json.loads(jsonFile.read())
-                if id_img not in all_data:
-                    all_data[id_img] = content[id_img]
-                    print("all_data: ", all_data)
-                    jsonFile.seek(0)
-                    json.dump(all_data, jsonFile, indent=2)
-                    return jsonify(all_data[id_img][effect][int(region_id)])
                 array_of_region_data = all_data[id_img][effect]
-
                 if int(region_id) + 1 > len(all_data[id_img][effect]):
                     array_of_region_data.append({"global_rate":0,
                                                  "local_rate": 0,
@@ -121,8 +103,8 @@ def upload_image(id_img,region_id, filename, highlight):
 
     if request.method == 'POST':
         with open(path, 'r+') as jsonFile:
-            #check if
 
+            #check if
             all_data = json.loads(jsonFile.read())
             #print("all_data",all_data)
             request_data = request.get_json()
@@ -168,26 +150,21 @@ def upload_image(id_img,region_id, filename, highlight):
             jsonFile.seek(0)
             json.dump(all_data, jsonFile, indent=2)
             jsonFile.truncate()
-            #correct
+
             path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            cv_img = cv2.imread(path,1)
-            normalize_obj.update(cv_img)
             all_contours,_,normalized_shape = normalize_obj.get_attributes()
             blank = np.zeros(normalized_shape[:2], dtype=np.uint8)
             result_image = convert_color_img(blank, 'x')
-
             highlight_contour = []
 
             for index_of_cnt in range(len(all_contours)):
-                result, mul_range = is_inside_contour_and_get_local_line(all_points_x,
-                                                                                  all_points_y,
-                                                                                  all_contours[index_of_cnt],
-                                                                                  )
+                result, mul_range, has_line_break = is_inside_contour_and_get_local_line(all_points_x,
+                                                                        all_points_y,
+                                                                        all_contours[index_of_cnt])
 
                 if not result:
                     result_image = cv2.drawContours(result_image, all_contours, index_of_cnt, (255, 0, 255), 1)
                 else:
-
                     highlight_contour.append([index_of_cnt, mul_range])
                     # blank1 = np.zeros(normalized_shape, dtype=np.uint8)
                     # blank1 = convert_color_img(blank1, 'x')
@@ -197,39 +174,36 @@ def upload_image(id_img,region_id, filename, highlight):
 
             #print("highlight_contour: ",highlight_contour)
             count = 0
-            print("highlight_contour: ", highlight_contour)
-            count = 0
             for hcnt in highlight_contour:
                 index, mul_range = hcnt
+                #print("hcnt: ", hcnt)
                 #print("mul_range: ", mul_range)
                 global_contours = all_contours[index].copy()
-                for rax in mul_range:
-                    start_cnt, end_cnt = rax
-                    line = global_contours[start_cnt:end_cnt]
-                    #print("line: ", line[0], "end_line", line[-1])
-                    ranging = [start_cnt, end_cnt]
-                    result_image, g_contours = smoothing_line(result_image, global_contours,
-                                                              line, ranging,
-                                                              False, only_x,
-                                                              only_y, local, glob,
-                                                              long, normalized_shape, highlight)
+                result_image, g_contours = smoothing_line(result_image, global_contours,
+                                                          mul_range, False,
+                                                          only_x, only_y,
+                                                          local, glob,
+                                                          long, normalized_shape, highlight)
+                # plt.imshow(result_image)
+                # plt.show()
+                normalize_obj.update(result_image)
 
-                    if not highlight:
-                        normalize_obj.update(result_image)
-            count += 1
-            # for hcnt in highlight_contour:
-            #     index, mul_range = hcnt
-            #     global_contours = all_contours[index].copy()
-            #     blank = np.zeros(normalized_shape, dtype=np.uint8)
-            #     cv2.drawContours(blank, all_contours, index, 255, 1)
-            #     plt.imshow(blank)
-            #     plt.show()
-            #imx = cv2.imread(path, 0)
+                # for rax in mul_range:
+                #     start_cnt, end_cnt = rax
+                #     line = global_contours[start_cnt:end_cnt]
+                #     ranging = [start_cnt, end_cnt]
+                #     result_image, g_contours = smoothing_line(result_image,global_contours,
+                #                                               mul_range,False,
+                #                                               only_x, only_y,
+                #                                               local, glob,
+                #                                               long, normalized_shape, highlight)
+                #     normalize_obj.update(result_image)
+                #     count +=1
 
             cv2.imwrite(path, result_image)
-            #return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
+            return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
 
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
+        #return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
 
             #return data_of_region_id
 
