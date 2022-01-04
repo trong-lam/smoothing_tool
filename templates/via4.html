@@ -228,7 +228,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
 #region_info { font-size:0.8em; margin-bottom:0.4em; }
 
 /* Loaded image list shown in leftsidebar panel */
-#img_fn_list    { display:none; font-size:small; overflow:scroll; min-height:10rem; max-height:25rem; }
+#img_fn_list    { display:none; font-size:small; overflow:scroll; min-height:3rem; max-height:3rem; }
 #img_fn_list ul { position:relative; line-height:1.3em; margin:0; padding:0; list-style-type:none;}
 #img_fn_list li { white-space:nowrap; display:block; padding:0 0.4rem; }
 #img_fn_list li:hover   { background-color:#d5e5ff; cursor:pointer; }
@@ -293,6 +293,11 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
 .slidetable .slidecell{
   display: table-cell;
   text-indent: 2%;
+  margin: auto
+}
+.slidecell p {
+  white-space: nowrap;
+  padding-right: 100px;
 }
 
 
@@ -305,6 +310,10 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
   opacity: 0.7;
   -webkit-transition: .2s;
   transition: opacity .2s;
+  margin-top: auto;
+}
+.table_of_property{
+
 }
 
 .slider:hover {
@@ -328,50 +337,86 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
 }
 /*Button  Added by Nguyen Trong Lam*/
 /* CSS */
-.button-27 {
+
+
+/* CSS */
+.button-3 {
   appearance: none;
-  background-color: #212121;
-  border: 2px solid #1A1A1A;
-  border-radius: 15px;
+  background-color: #ff013c;
+  border: 1px solid rgba(27, 31, 35, .15);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, .1) 0 1px 0;
   box-sizing: border-box;
-  color: #FFFFFF;
+  color: #feffff;
   cursor: pointer;
   display: inline-block;
-  font-family: Roobert,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
-  font-size: 15px;
+  font-family: -apple-system,system-ui,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji";
+  font-size: 14px;
   font-weight: 600;
-  line-height: normal;
-  margin: 0;
-  min-height: 30px;
-  min-width: 0;
-  outline: none;
-  padding: 16px 19px;
+  line-height: 20px;
+  padding: 6px 16px;
+  position: relative;
   text-align: center;
   text-decoration: none;
-  transition: all 300ms cubic-bezier(.23, 1, 0.32, 1);
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  width: 30%;
-  will-change: transform;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
-.button-27:disabled {
-  pointer-events: none;
-}
-
-.button-27:hover {
-  box-shadow: rgba(0, 0, 0, 0.25) 0 8px 15px;
-  transform: translateY(-2px);
-}
-
-.button-27:active {
+.button-3:focus:not(:focus-visible):not(.focus-visible) {
   box-shadow: none;
-  transform: translateY(0);
+  outline: none;
+}
+
+.button-3:hover {
+  background-color: #de2444;
+}
+
+.button-3:focus {
+  box-shadow: rgba(46, 164, 79, .4) 0 0 0 3px;
+  outline: none;
+}
+
+.button-3:disabled {
+  background-color: #94d3a2;
+  border-color: rgba(27, 31, 35, .1);
+  color: rgba(255, 255, 255, .8);
+  cursor: default;
+}
+
+.button-3:active {
+  background-color: #298e46;
+  box-shadow: rgba(20, 70, 32, .2) 0 1px 0 inset;
+}
+
+#convert_img{
+  background-color: #000000;
+  color:#ffffff;
+  visibility: hidden;
+}
+
+#back_img{
+  background-color: #f76462;
+  color:#ffffff;
+  visibility: hidden;
+}
+#back_img:active{
+  background-color: #201d1d;
+  color:#ffffff;
+}
+
+#show_diff_img{
+  background-color: #2ea44f;
+  color:#eff8f0;
+  visibility: hidden;
 }
 
 /* Second button added by Nguyen Trong Lam */
 /* CSS */
+
+
 .button-7 {
   background-color: #0095ff;
   border: 1px solid transparent;
@@ -385,7 +430,7 @@ ul.region_shape .selected { fill:#ffffff; stroke:#ff0000; }
   font-size: 13px;
   font-weight: 400;
   line-height: 1.15385;
-  margin: 0;
+  margin: 0px 5px 0px 0px;
   outline: none;
   padding: 8px .8em;
   position: relative;
@@ -791,8 +836,24 @@ input:checked + .slider:after
           </p>
         </div>
 
+        <!-- Added by Nguyen Trong Lam, show original image -->
+        <div class="leftsidebar_accordion" id="show_original_img">
+          Show original image, Remember to adjust later
+          <div class="leftsidebar_accordion_panel show">
+            <img id="org_img" alt="Original" style="display:None">
+            <canvas id="canvas_original_img" width = "275"
+                    style="border:1px solid #000000;height: inherit; width:inherit">
+              Your browser does not support the HTML canvas tag.
+            </canvas>
+
+          </div>
+
+        </div>
+        <!-- Ended by Nguyen Trong Lam -->
+
         <!-- Attributes -->
-        <button class="leftsidebar_accordion" id="attributes_editor_panel_title">Attributes</button>
+        <!-- Has been modified by Lam, display:None -->
+        <button class="leftsidebar_accordion" style="display:None" id="attributes_editor_panel_title">Attributes</button>
         <div class="leftsidebar_accordion_panel" id="attributes_editor_panel">
           <div class="button_panel" style="padding:1rem 0;">
             <span class="text_button" onclick="show_region_attributes_update_panel()" id="button_show_region_attributes" title="Show region attributes">Region Attributes</span>
@@ -814,8 +875,8 @@ input:checked + .slider:after
             </p>
           </div>
         </div>
-
-        <button class="leftsidebar_accordion">Keyboard Shortcuts</button>
+        <!-- Has been modified by Lam, display: None -->
+        <button class="leftsidebar_accordion" style="display:None">Keyboard Shortcuts</button>
         <div class="leftsidebar_accordion_panel">
           <div style="display:block; text-align:center; padding:1rem;">Available only on image focus</div>
           <table>
@@ -1205,9 +1266,12 @@ POSSIBILITY OF SUCH DAMAGE.
       <!-- Added by Nguyen Trong Lam, addtional pannel -->
         <div id="rightsidebar">
           <div class="button-container">
-            <button class="button-27" id = "normalize_img" role="button">Normalize</button>
+            <button class="button-3" id = "normalize_img" role="button">Normalize</button>
+            <button class="button-3" id = "convert_img" role="button" onclick="convertToOriginal()"> Convert</button>
+            <button class="button-3" id = "show_diff_img" role="button" onclick="showDifference()"> Show-Difference</button>
+            <button class="button-3" id = "back_img" role="button" onclick="revertImage()">Back</button>
           </div>
-          <div class="slidetable">
+          <div class="slidetable" id ="table_content">
             <!-- More row will apper later -->
           </div>
         </div>
@@ -1365,6 +1429,11 @@ var _via_img_panel    = document.getElementById('image_panel');
 var _via_reg_canvas   = document.getElementById('region_canvas');
 var _via_reg_ctx; // initialized in _via_init()
 var _via_canvas_width, _via_canvas_height;
+
+//Added by Nguyen Trong Lam
+var _via_canvas_org_img   = document.getElementById('canvas_original_img');
+var _via_ctx_org_img; //initialized in _via_init()
+//Ended by Nguyen Trong Lam
 
 // canvas zoom
 var _via_canvas_zoom_level_index   = VIA_CANVAS_DEFAULT_ZOOM_LEVEL_INDEX; // 1.0
@@ -1535,8 +1604,9 @@ var VIA_POLYGON_SEGMENT_SUBTENDED_ANGLE   = 5;   // in degree (used to approxima
 var VIA_FLOAT_PRECISION = 3; // number of decimal places to include in float values
 
 //Added by Nguyen Trong Lam
-var mocban_server_path = 'http://127.0.0.1:5000/'
-
+var mocban_server_path = 'http://127.0.0.1:5000/';
+var mocban_current_id = _via_image_index;
+var original_image_url =""; // initialize after choose image
 //Ended by Nguyen Trong Lam
 
 // COCO Export
@@ -1562,7 +1632,41 @@ function file_region() {
 //
 // Added by Nguyen Trong Lam
 //
+
+function drawImageScaled(img, ctx) {
+   var canvas = ctx.canvas ;
+   var hRatio = canvas.width  / img.width    ;
+   var vRatio =  canvas.height / img.height  ;
+   var ratio  = Math.min ( hRatio, vRatio );
+   var centerShift_x = ( canvas.width - img.width*ratio ) / 2;
+   var centerShift_y = ( canvas.height - img.height*ratio ) / 2;
+   ctx.clearRect(0,0,canvas.width, canvas.height);
+   ctx.drawImage(img, 0,0, img.width, img.height,
+                      centerShift_x,centerShift_y,img.width*ratio, img.height*ratio);
+}
+
+const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+  const byteCharacters = atob(b64Data);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  const blob = new Blob(byteArrays, {type: contentType});
+  return blob;
+}
+
 var test_new_imgid = "";
+var activate_normalize = "True";
 document.getElementById("normalize_img").addEventListener("click", function() {
 
   //console.log("input",input);
@@ -1573,22 +1677,44 @@ document.getElementById("normalize_img").addEventListener("click", function() {
   //console.log("test_new_imgid",test_new_imgid);
   //console.log("_via_img_fileref[imge.png]",_via_img_fileref["imge.png"]);
   //console.log(input.files);
+  //console.log("this.visibility", this.visibility);
 
+  this.style.visibility = "hidden";
+  let current_id = get_moc_ban_current_id()
+  let current_name_of_file =_via_image_filename_list[current_id];
   var input = document.getElementById('invisible_file_input')
   let bimg0 = document.getElementById(_via_img_buffer_get_html_id(_via_image_index))
-  bimg0.src = test_new_imgid;
 
   var data = new FormData()
   data.append('file', _via_img_fileref[_via_image_id])
-
-  fetch(mocban_server_path+"/static/uploads/"+input.files[0].name, {
+  console.log("file: ", _via_img_fileref[_via_image_id]);
+  fetch(mocban_server_path+"/static/uploads/"+activate_normalize+"/"+current_name_of_file, {
     method: 'POST',
     body: data,
-  }).then(response => response.blob()).then(function(res){
+  }).then(function(response){
+    return response.blob();
+  }).then(function(res){
+      //console.log("res.data: ", res.data);
+      //let fileContent = res.data;
+      //let bytes = new Uint8Array(fileContent.length);
+      //for (let i = 0; i < res.data.length; i++) {
+      //    bytes[i] = fileContent.charCodeAt(i);
+      //}
+      //console.log("bytes: ", bytes);
+      //var blob = new Blob([bytes], { type: 'image/png' });
+
+      //bimg0.src = 'data:image/png;base64,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';
+      //bimg0.src = 'data:image/png;base64,'+res.data;
+
+      //const blob = b64toBlob(res.data, 'image/png');
       bimg0.src = URL.createObjectURL(res);
-      console.log('success', URL.createObjectURL(res))
-      console.log(res)
+      //console.log('success', URL.createObjectURL(res))
+      //console.log(res)
   })
+  console.log("file after: ", _via_img_fileref[_via_image_id]);
+  activate_normalize = "False"
+  document.getElementById("convert_img").style.visibility = "visible";
+  document.getElementById("show_diff_img").style.visibility = "visible";
 });
 
 //
@@ -1639,6 +1765,7 @@ function _via_init() {
 
 function _via_init_reg_canvas_context() {
   _via_reg_ctx  = _via_reg_canvas.getContext('2d');
+  _via_ctx_org_img  = _via_canvas_org_img.getContext('2d');
 }
 
 function _via_init_keyboard_handlers() {
@@ -2965,9 +3092,11 @@ function hide_all_canvas() {
 }
 
 function jump_to_image(image_index) {
+
   if ( _via_img_count <= 0 ) {
     return;
   }
+
 
   switch(_via_display_area_content_name) {
   case VIA_DISPLAY_AREA_CONTENT_NAME.IMAGE_GRID:
@@ -2980,6 +3109,13 @@ function jump_to_image(image_index) {
   default:
     if ( image_index >= 0 && image_index < _via_img_count) {
       _via_show_img(image_index);
+      //Added by Nguyen Trong Lam
+
+          set_moc_ban_current_id(image_index);
+          console.log("jump in into image: ", image_index);
+          console.log("but it is actually: ", get_moc_ban_current_id());
+
+        //Ended by Nguyen Trong Lam
     }
     break;
   }
@@ -3092,6 +3228,7 @@ function _via_reg_canvas_mousedown_handler(e) {
           _via_current_shape !== VIA_REGION_SHAPE.POINT) {
         // this is a bounding box drawing event
         _via_is_user_drawing_region = true;
+
       }
     } else {
       // mousedown inside a region
@@ -3104,90 +3241,110 @@ function _via_reg_canvas_mousedown_handler(e) {
       console.log("User enter the region");
       // important note: _via_image_id: the id of current image
       // region_id // id of current region image
+
       let input = document.getElementById('invisible_file_input');
-      let path_to_get_effect = (
-          mocban_server_path
-          + "False" + "/"
-          + "gaussian" + "/"
-          + input.files[0].name + "/"
-          +"/" + _via_image_index + "/"
-          + region_id.toString()
-          );
+      let current_id = get_moc_ban_current_id();
+      if (current_id == -1){
+          current_id = _via_image_index;
+      }
+      let current_name_of_file = _via_image_filename_list[current_id];
 
-      fetch(path_to_get_effect)
-      .then(response => response.json())
-      .then(data => {
+      console.log("_via_image_filename_list[moc_ban_current_id]",_via_image_filename_list[current_id]);
+      console.log("current_name_of_file",current_name_of_file,", moc_ban_current_id: ", current_id);
+      let normalize_current_value = document.getElementById("normalize_img").style.visibility;
+      if (normalize_current_value == "hidden"){
+            console.log("normalize_current_value: ", normalize_current_value);
+            document.getElementById("table_content").style.display = "block";
+            let path_to_get_effect = (
+                      mocban_server_path
+                      + "False" + "/"
+                      + "gaussian" + "/"
+                      + current_name_of_file + "/"
+                      +"/" + current_id + "/"
+                      + region_id.toString()
+                      );
 
-          let li = `<p style="font-size: 20px;">GAUSSIAN EFFECT:</p>`
-          li += `
+                  fetch(path_to_get_effect)
+                  .then(response => response.json())
+                  .then(data => {
 
-          <div class = "sliderow">
-            <div class="slidecell"><p>Global effect:</p></div>
-              <div class="slidecell"><input type="range" id="glGauss" name="global" class="form-range" min="0" max="50" value="${data.global_rate}"></div>
-           </div>
+                      let li = `<p style="font-size: 20px;">GAUSSIAN EFFECT:</p>`
+                      li += `
 
-           <div class = "sliderow">
-                  <div class="slidecell"><p>Local Rate:</p></div>
-                  <div class="slidecell"><input type="range" id="localRate" class="form-range" min="1" max="50" value="${data.local_rate}"></div>
-           </div>
+                      <div class = "table_of_property">
 
-            <div class = "sliderow">
-                  <div class="slidecell"><p>Long Rate:</p></div>
-                  <div class="slidecell"><input type="range" id="longRate" class="form-range" min="0" max="50" value="${data.long_rate}"></div>
-             </div>
+                       <div class = "sliderow">
+                              <div class="slidecell"><p>Local Rate:</p></div>
+                              <div class="slidecell"><input type="range" id="localRate" class="form-range" min="1" max="50" value="${data.local_rate}"></div>
+                       </div>
 
-             <div class = "sliderow">
-              <div class="slidecell"><p>Gausssian only by X</p></div>
-              <div class="slidecell">
-                  <label class="switch">
-                    <input type="checkbox" id="onlyX" checked onload="enableCheck(this);" value = "${data.only_x}">
-                    <div class="slider round"></div>
-                  </label>
-               </div>
-              </div>
+                         <div class = "sliderow">
+                          <div class="slidecell"><p>Gausssian X</p></div>
+                          <div class="slidecell">
+                              <label class="switch">
+                                <input type="checkbox" id="onlyX" checked onload="enableCheck(this);" value = "${data.only_x}">
+                                <div class="slider round"></div>
+                              </label>
+                           </div>
+                          </div>
 
-              <div class = "sliderow">
-                <div class="slidecell"><p>Gausssian only by Y</p></div>
-                <div class="slidecell">
-                  <label class="switch">
-                    <input type="checkbox" id="onlyY" checked onload="enableCheck(this);" value = "${data.only_y}">
-                    <div class="slider round"></div>
-                  </label>
-                </div>
-              </div>
+                          <div class = "sliderow">
+                            <div class="slidecell"><p>Gausssian Y</p></div>
+                            <div class="slidecell">
+                              <label class="switch">
+                                <input type="checkbox" id="onlyY" checked onload="enableCheck(this);" value = "${data.only_y}">
+                                <div class="slider round"></div>
+                              </label>
+                            </div>
+                          </div>
 
-           `;
-          li += `<button class="button-7" role="button" onclick="sendGaussAtr(`
-          li += region_id.toString()
-          li += `)">Smoothing</button>`
+                       `;
+                      li += `<button class="button-7" role="button" id="smoothing_img" onclick="sendGaussAtr(`
+                      li += region_id.toString()
+                      li += `)">Smoothing</button>`
 
 
-      // Display result
-      document.querySelector(".slidetable").innerHTML = li;
-      let input = document.getElementById('invisible_file_input');
-      let path_to_get_highlight_region = (mocban_server_path
-      + "True"+ "/"
-      + "gaussian" + "/"
-      + input.files[0].name + "/"
-      + _via_image_index
-      + "/"+ region_id.toString());
-      let attr = _via_canvas_regions[region_id].shape_attributes;
-      fetch(path_to_get_highlight_region,{
-        method:'POST',
-        headers: new Headers({
-          "content-type": "application/json"
-          }),
-        body:JSON.stringify({'attr':attr})
-      }).then(response => response.blob()).then(function(res){
-          let bimg0 = document.getElementById(_via_img_buffer_get_html_id(_via_image_index))
-          bimg0.src = URL.createObjectURL(res);
-  })
 
-      // Ended by Nguyen Trong Lam
-  });
+
+                  // Display result
+                  document.querySelector(".slidetable").innerHTML = li;
+
+                  let input = document.getElementById('invisible_file_input');
+                  let path_to_get_highlight_region = (mocban_server_path
+                  + "True"+ "/"
+                  + "gaussian" + "/"
+                  + current_name_of_file + "/"
+                  + current_id
+                  + "/"+ region_id.toString());
+                  let attr = _via_canvas_regions[region_id].shape_attributes;
+                  fetch(path_to_get_highlight_region,{
+                    method:'POST',
+                    headers: new Headers({
+                      "content-type": "application/json"
+                      }),
+                    body:JSON.stringify({'attr':attr})
+                  }).then(response => response.blob()).then(function(res){
+                      let bimg0 = document.getElementById(_via_img_buffer_get_html_id(_via_image_index))
+                      bimg0.src = URL.createObjectURL(res);
+              })
+          // Ended by Nguyen Trong Lam
+      });
+
+      }
+
 
     }
   }
+}
+
+function set_moc_ban_current_id(id){
+     mocban_current_id = id;
+     console.log("mocban_current_id: ", mocban_current_id);
+}
+
+
+function get_moc_ban_current_id(){
+    return mocban_current_id;
 }
 
 //Added by Nguyen Trong Lam
@@ -3204,31 +3361,73 @@ function enableCheck(e){
     e.checked = false;
   }
 }
+function convertToOriginal(){
+  let current_id = get_moc_ban_current_id()
+  let current_name_of_file =_via_image_filename_list[current_id];
+  var input = document.getElementById('invisible_file_input')
+  let bimg0 = document.getElementById(_via_img_buffer_get_html_id(_via_image_index))
+
+  fetch(mocban_server_path+"/convert/"+current_name_of_file).then(response => response.blob()).then(function(res){
+      let temp_value = res;
+      var file = new File([res], current_name_of_file, {
+          lastModified: new Date(0), // optional - default = now
+      });
+      _via_img_fileref[_via_image_id] = file;
+      bimg0.src = URL.createObjectURL(temp_value);
+
+  })
+  document.getElementById("normalize_img").style.visibility="visible";
+  document.getElementById("table_content").style.display = "none";
+  document.getElementById("convert_img").style.visibility="hidden";
+  document.getElementById("back_img").style.visibility="hidden";
+}
+
+function showDifference(){
+  let current_id = get_moc_ban_current_id()
+  let current_name_of_file =_via_image_filename_list[current_id];
+  var input = document.getElementById('invisible_file_input')
+  let bimg0 = document.getElementById(_via_img_buffer_get_html_id(_via_image_index))
+
+  fetch(mocban_server_path+"/show_diff/"+current_name_of_file).then(response => response.blob()).then(function(res){
+      bimg0.src = URL.createObjectURL(res);
+  })
+
+
+}
+
+function revertImage(){
+    let current_id = get_moc_ban_current_id()
+    let current_name_of_file =_via_image_filename_list[current_id];
+    let bimg0 = document.getElementById(_via_img_buffer_get_html_id(_via_image_index))
+    fetch(mocban_server_path+"/revertImage/"+current_name_of_file).then(response => response.blob()).then(function(res){
+          bimg0.src = URL.createObjectURL(res);
+      })
+    let back_Image = document.getElementById('back_img');
+    back_Image.style.visibility = "hidden";
+}
 
 function sendGaussAtr(region_id){
-  let globalGauss = document.getElementById('glGauss');
   let localRate = document.getElementById('localRate');
-  let longRate = document.getElementById('longRate');
+  let back_Image = document.getElementById('back_img');
   let onlyX = document.getElementById('onlyX');
   let onlyY = document.getElementById('onlyY');
-  let current_id = _via_image_index;
+  let current_id = get_moc_ban_current_id();
   let attr = _via_canvas_regions[region_id].shape_attributes;
 
   //console.log("region_id", region_id);
   //console.log("img_id",current_id);
   let input = document.getElementById('invisible_file_input');
-
+  let current_name_of_file = _via_image_filename_list[current_id];
   let set_new_value_gauss = (mocban_server_path
   + "False" + "/"
   + "gaussian"+ "/"
-  + input.files[0].name + "/"
+  + current_name_of_file + "/"
   + current_id + "/"
   + region_id);
   fetch(set_new_value_gauss, {
     method: 'POST',
-    body: JSON.stringify({"global_rate":globalGauss.value,
+    body: JSON.stringify({
     "local_rate":localRate.value,
-     "long_rate":longRate.value,
      "only_x":onlyX.checked.toString(),
      "only_y":onlyY.checked.toString(),
      "attr":attr }),
@@ -3240,6 +3439,8 @@ function sendGaussAtr(region_id){
       bimg0.src = URL.createObjectURL(res);
 
   })
+  back_Image.style.visibility = "visible";
+  document.getElementById("table_content").style.display = "none";
   }
 
 // implements the following functionalities:
@@ -6461,7 +6662,7 @@ function img_fn_list_clear_css_classname(classname) {
 function img_fn_list_ith_entry_html(i) {
   var htmli = '';
   var filename = _via_image_filename_list[i];
-  console.log("filename", filename);
+  //console.log("filename", filename);
   if ( is_url(filename) ) {
     filename = filename.substr(0,4) + '...' + get_filename_from_url(filename);
   }
@@ -8842,7 +9043,7 @@ function project_add_new_file(filename, size, file_id) {
       size = -1;
     }
     img_id = _via_get_image_id(filename, size);
-    console.log("img_id", img_id);
+    //console.log("img_id", img_id);
   }
 
   if ( ! _via_img_metadata.hasOwnProperty(img_id) ) {
@@ -8856,10 +9057,10 @@ function project_add_new_file(filename, size, file_id) {
 
 function project_file_add_local(event) {
   var user_selected_images = event.target.files;
-  console.log("user_selected_images",user_selected_images);
+  //console.log("user_selected_images",user_selected_images);
   var original_image_count = _via_img_count;
-  console.log("_via_img_count",_via_img_count);
-  console.log("here first", "project_file_add_local");
+  //console.log("_via_img_count",_via_img_count);
+  //console.log("here first", "project_file_add_local");
   var new_img_index_list = [];
   var discarded_file_count = 0;
   for ( var i = 0; i < user_selected_images.length; ++i ) {
@@ -8871,7 +9072,7 @@ function project_file_add_local(event) {
         // a new file was added to project
         var new_img_id = project_add_new_file(user_selected_images[i].name,
                                               user_selected_images[i].size);
-        console.log("new_img_id", new_img_id);
+        //console.log("new_img_id", new_img_id);
         _via_img_fileref[new_img_id] = user_selected_images[i];
         //console.log("_via_img_fileref[new_img_id] all", _via_img_fileref);
         //console.log("_via_img_fileref[new_img_id] new_img_id", _via_img_fileref[new_img_id]);
@@ -10514,7 +10715,7 @@ function _via_cancel_current_image_loading() {
 }
 
 function _via_show_img(img_index) {
-  console.log("_via_show_img - img_index", img_index);
+  //console.log("_via_show_img - img_index", img_index);
   if ( _via_is_loading_current_image ) {
     return;
   }
@@ -10706,11 +10907,14 @@ function _via_img_buffer_add_image(img_index) {
     // browser's file selector
     if ( _via_img_fileref[img_id] instanceof File ) {
       // added by lam
-      test_new_imgid = URL.createObjectURL(_via_img_fileref[img_id]);
+      original_image_url = URL.createObjectURL(_via_img_fileref[img_id]);
+      test_new_imgid =URL.createObjectURL(_via_img_fileref[img_id]);
+      set_moc_ban_current_id(img_index);
+      // ended by lam
       var tmp_file_object_url = URL.createObjectURL(_via_img_fileref[img_id]);
       var img_id = _via_image_id_list[img_index];
       var bimg = document.createElement('img');
-      console.log('mark');
+      //console.log('mark');
       bimg.setAttribute('id', _via_img_buffer_get_html_id(img_index));
       bimg.setAttribute('src', tmp_file_object_url);
       bimg.setAttribute('alt', 'Image loaded from base64 data of a local file selected by user.');
@@ -10719,6 +10923,14 @@ function _via_img_buffer_add_image(img_index) {
         project_file_load_on_fail(img_index);
         err_callback(img_index);
       });
+      //Added by Nguyen Trong  Lam
+      org_img.src = original_image_url
+      org_img.addEventListener('error', function() {
+          URL.revokeObjectURL(original_image_url);
+          project_file_load_on_fail(img_index);
+          err_callback(img_index);
+       });
+      //Ended by Nguyen Trong Lam
       bimg.addEventListener('load', function() {
         URL.revokeObjectURL(tmp_file_object_url);
         img_stat_set(img_index, [bimg.naturalWidth, bimg.naturalHeight]);
@@ -10727,6 +10939,11 @@ function _via_img_buffer_add_image(img_index) {
         img_fn_list_ith_entry_add_css_class(img_index, 'buffered')
         // add timestamp so that we can apply Least Recently Used (LRU)
         // scheme to remove elements when buffer is full
+        //Added by Nguyen Trong Lam
+        let org_img = document.getElementById("org_img");
+
+        drawImageScaled(org_img, _via_ctx_org_img);
+        //Ended by Nguyen Trong Lam
         var arr_index = _via_buffer_img_index_list.length;
         _via_buffer_img_index_list.push(img_index);
         _via_buffer_img_shown_timestamp[arr_index] = Date.now(); // though, not seen yet
