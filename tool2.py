@@ -155,7 +155,7 @@ def show_line_with_diff_color(img, contours, color='r'):
     return img
 
 
-def smoothing_line(result_img, global_line_contours, mul_range, visualize, smoothenByX, smoothenByY, local_rate,
+def smoothing_line(global_line_contours, mul_range, visualize, smoothenByX, smoothenByY, local_rate,
                    img_shape, highlight):
     """ This function emphasizes on smoothing specific region of the random line
 
@@ -183,12 +183,7 @@ def smoothing_line(result_img, global_line_contours, mul_range, visualize, smoot
 
 
     if highlight:
-        cv2.drawContours(result_img, [global_line_contours], -1, (255, 0, 255), 1)
-        for r in mul_range:
-            start, end = r
-            local_line_contour = global_line_contours[start:end]
-            result_img = show_line_with_diff_color(result_img, local_line_contour, 'r')
-        return result_img, global_line_contours
+        print("highlight")
 
     else:
         # Smoothing only for local line
@@ -206,8 +201,8 @@ def smoothing_line(result_img, global_line_contours, mul_range, visualize, smoot
             distance = abs(start_global_line - end_global_line)
             end_local_line = start_local_line + distance
             global_line_contours[start_global_line:end_global_line] = new_local_line[start_local_line:end_local_line]
-        result_img = cv2.drawContours(result_img, [global_line_contours], -1, (255, 0, 255), 1)
-        return result_img, global_line_contours
+
+        return global_line_contours
 
 def convert_color_img(img, color):
     """
@@ -231,6 +226,9 @@ def convert_color_img(img, color):
         np_rgb_color[np_rgb_color[:, :, color_index] == 0, color_index] = 255
     return np_rgb_color
 
+
+def convert_img_to_orginial_form(img):
+    print("cxz")
 
 
 

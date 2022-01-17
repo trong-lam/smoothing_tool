@@ -1,4 +1,4 @@
-from flask import Flask, flash, request, redirect, url_for, render_template, jsonify, send_from_directory,send_file
+from flask import Flask, flash,make_response, request, redirect, url_for, render_template, jsonify, send_from_directory,send_file
 import urllib.request
 import os
 from werkzeug.utils import secure_filename
@@ -12,6 +12,7 @@ import copy
 from testing_contours import centerlize_contour_image, preprocess_img
 from tool2 import is_inside_polygon,smoothing_line, is_inside_contour_and_get_local_line,convert_color_img,show_line_with_diff_color
 from normalize import Normalize
+import base64
 from collections import defaultdict
 app = Flask(__name__)
 
@@ -26,47 +27,29 @@ normalize_obj = Normalize()
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
 
 
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 @app.route('/')
 def home():
-    return render_template('via4.html')
+    return "Hello World"
 
-""" Saving image to the static/uploads in form of normalized image
-    params:
-    --filename: Name of target image
+@app.route('/show_imgs/<target_img_name>')
+def show_img(target_img_name):
+    path = os.path.join(app.config['UPLOAD_FOLDER'], target_img_name)
+    img = cv2.imread(path,0)
+    normalized_pred_img = normalize_obj.preprocess_img(img)
+    img_base64 = "data:image/png;base64," + base64.b64encode(cv2.imencode('.png', normalized_pred_img)[1]).decode()
+    mocban_data = {'filename':target_img_name,
+                'img':img_base64
+            }
+    return render_template('via4.html', mocban_data=mocban_data)
 
-"""
-@app.route('/static/uploads/<activate_normalize>/<filename>/', methods=['POST', 'GET'])
-def recieve_img(filename, activate_normalize=None):
-    if request.method == 'POST':
-        file = request.files['file']
-        if file:
-            filename = secure_filename(file.filename)
-
-            nparr = np.fromstring(file.read(), np.uint8)
-            #print("nparr: ", nparr)
-            img_np = cv2.imdecode(nparr, cv2.IMREAD_COLOR)  # cv2.IMREAD_COLOR in OpenCV 3.1
-            #print("img_np: ", img_np)
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            img_np = cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
-            print(" io.BytesIO(img_np): ",  io.BytesIO(img_np))
-            # return send_file(
-            #     io.BytesIO(img_np),
-            #     attachment_filename=filename,
-            #     mimetype='image/png'
-            # )
-            if activate_normalize == "True":
-                normalized_pred_img = normalize_obj.preprocess_img(img_np)
-                activate_normalize = False
-            else:
-                _,normalized_pred_img,_,_,_,_,_ = normalize_obj.get_attributes()
-            # = convert_color_img(normalized_pred_img, 'x')
-            cv2.imwrite(path, normalized_pred_img)
-
-            return send_from_directory(app.config['UPLOAD_FOLDER'],filename, as_attachment=False )
+@app.route('/imgs/<img_name>')
+def get_img(img_name):
+    return send_from_directory(app.config['UPLOAD_FOLDER'],img_name, as_attachment=False )
 
 
 """ Recieving the gaussian value and make the change on the local line
@@ -79,7 +62,6 @@ def recieve_img(filename, activate_normalize=None):
 def upload_image(id_img,region_id, filename, highlight):
     effect = "gaussian" # may be change later
     path = os.path.join(os.getcwd(), 'dataOfEffect.json')
-    #print("file_name: ", filename,"id_img: ", id_img,"region_id: ", region_id)
     content = {
         id_img: {
             effect: [
@@ -156,14 +138,7 @@ def upload_image(id_img,region_id, filename, highlight):
 
         #correct
         path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-        # cv_img = cv2.imread(path,1)
-        # normalize_obj.update(cv_img)
-
-        all_contours,_,normalized_shape,_,_,_,_ = normalize_obj.get_attributes()
-        blank = np.zeros(normalized_shape[:2], dtype=np.uint8)
-        result_image = convert_color_img(blank, 'x')
-
+        all_contours,normalized_shape,_,_,_ = normalize_obj.get_attributes()
         highlight_contour = []
 
         for index_of_cnt in range(len(all_contours)):
@@ -171,48 +146,37 @@ def upload_image(id_img,region_id, filename, highlight):
                                                                               all_points_y,
                                                                               all_contours[index_of_cnt],
                                                                               )
-            if not result:
-                result_image = cv2.drawContours(result_image, all_contours, index_of_cnt, (255, 0, 255), 1)
-            else:
+            if result:
                 highlight_contour.append([index_of_cnt, mul_range])
 
 
+
+        print("highlight_contour",highlight_contour)
         for hcnt in highlight_contour:
             index, mul_range = hcnt
             global_contours = all_contours[index].copy()
-            result_image, g_contours = smoothing_line(result_image, global_contours,
-                                                          mul_range, False,
+            g_contours = smoothing_line(global_contours, mul_range, False,
                                                           only_x,only_y,
                                                           local,normalized_shape,highlight)
-        if not highlight:
-            normalize_obj.update(result_image,False)
 
+
+        if not highlight:
+            normalize_obj.update(False, index,g_contours)
+
+        result_image = normalize_obj.convert_to_original_image()
         cv2.imwrite(path, result_image)
         return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
 
 
 
-@app.route('/convert/<filename>/', methods=['POST', 'GET'])
-def convert_img_to_orginial_form(filename):
-    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    cv_img = cv2.imread(path, 0)
-    blank = 255 - np.zeros(cv_img.shape[:2], dtype=np.uint8)
-    contours, hierarchy = cv2.findContours(cv_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-    for i, contour_no in enumerate(hierarchy[0]):
-        #print("contour_no: ", contour_no)
-        if contour_no[3] == -1:  # do not have the parents
-            cv2.drawContours(blank, contours, i, 0, -1)
-        if contour_no[2] == -1:  # do not have the parents
-            cv2.drawContours(blank, contours, i, 255, -1)
-    cv2.imwrite(path, blank)
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
+
 
 @app.route('/revertImage/<filename>/', methods=['POST', 'GET'])
 def revert_image(filename):
-    _,_,_,_,_,_,previous_img = normalize_obj.get_attributes()
-    normalize_obj.update(previous_img, True)
+    normalize_obj.update(True, None, None)
     path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    cv2.imwrite(path, previous_img)
+    result_img = normalize_obj.convert_to_original_image()
+    cv2.imwrite(path, result_img)
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=False)
 
 @app.route('/show_diff/<filename>/', methods=['POST', 'GET'])

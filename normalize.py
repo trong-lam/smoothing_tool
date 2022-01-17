@@ -6,45 +6,29 @@ from tool import convert_color_img
 class Normalize:
     def __init__(self):
         self.contours = None
-        self.result_img = None
         self.result_img_shape = None
         self.no_of_contour = None
         self.hierarchy = None
-        self.original_img = None
-        self.previous_img = None
+        self.previous_cnt = None
 
-    def set_attributes(self, cnt, result_image, shape, hierarchy):
+    def set_attributes(self, cnt, shape, hierarchy):
         self.contours = list(cnt)
-        self.result_img = result_image
         self.result_img_shape = shape
         self.hierarchy = hierarchy
-        self.original_img = result_image
         self.original_contours = list(cnt)
-        self.previous_img = result_image
+        self.previous_cnt = list(cnt)
 
     def get_attributes(self):
-        return self.contours, self.result_img, self.result_img_shape, self.hierarchy, self.original_img,\
-               self.original_contours, self.previous_img
+        return self.contours, self.result_img_shape, self.hierarchy,\
+               self.original_contours, self.previous_cnt
 
-    def update(self, img, prev):
+    def update(self, prev, index_cnt,new_cnt_of_int):
         if prev is False:
-            self.previous_img = self.result_img
+            self.previous_cnt = self.contours.copy()
+            self.contours[index_cnt] = new_cnt_of_int
         else:
-            self.previous_img = img
+            self.contours = self.previous_cnt
 
-        self.result_img = img
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        contours,hierarchy = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        contours = list(contours)
-        # # remove duplicate contour
-        new_contours = []
-        for i in range(len(contours)):
-            if i % 2 == 0:
-                new_contours.append(contours[i])
-        del contours
-        #print("len(new_contours): ",len(new_contours))
-        self.contours = new_contours
-        self.hierarchy = hierarchy
 
     def shift_image(self,img, x, y):
         """
@@ -121,6 +105,7 @@ class Normalize:
         bin_img = cv2.bitwise_and(bin_img, bin_img, mask=cv2.resize(mask, bin_img.shape))
         bin_img = cv2.bitwise_or(bin_img, 1 - inv_mask, mask=cv2.resize(total_mask, bin_img.shape))
         return bin_img, self.list_contours(new_contours)
+
 
     def crop_char(self,thresh, contours):
         """
@@ -225,10 +210,12 @@ class Normalize:
         normalized_print_img = self.padding_to_original_size(normalized_print_img, cv_img.shape)
         # normalized_print_img is image of filled contour
         contours, hierarchy = cv2.findContours(normalized_print_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
-        result_img = np.zeros(normalized_print_img.shape, dtype=np.uint8)
-        result_img = convert_color_img(result_img, 'x')
-        result_img = cv2.drawContours(result_img, contours, -1, (255,0,255), 1)
-        self.set_attributes(contours, result_img, result_img.shape, hierarchy)
+        self.set_attributes(contours, normalized_print_img.shape, hierarchy)
         #print("len(contours)",len(contours))
-        return result_img
+        return 255 - normalized_print_img*255
+
+    def convert_to_original_image(self):
+        blank = np.zeros(self.result_img_shape, dtype=np.uint8)
+        blank = cv2.drawContours(blank, self.contours, -1, 255, -1)
+        return 255 - blank
 
